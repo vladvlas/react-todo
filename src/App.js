@@ -9,6 +9,7 @@ import MyInput from "./components/UI/input/MyInput";
 import MyLoader from "./components/UI/loader/MyLoader";
 import MyModal from "./components/UI/modal/MyModal";
 import MySelect from "./components/UI/select/MySelect";
+import { useFetching } from "./hooks/useFetching";
 import { usePosts } from "./hooks/usePosts";
 
 import './styles/App.css'
@@ -19,7 +20,10 @@ function App() {
   const [filter, setFilter] = useState({sort: '', query: ''});
   const [modal, setModal] = useState(false);
   const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query);
-  const [isPostsLoading, setIsPostsLoading] = useState(false)
+  const [fetchPosts, isPostsLoading, postError] = useFetching(async () => {
+    const posts = await PostService.getAll();
+    setPosts(posts);
+  })  
 
   
 
@@ -31,13 +35,6 @@ function App() {
  const createPost = (newPost) => {
   setPosts([...posts, newPost]);
   setModal(false)
- }
-
- async function fetchPosts() {
-   setIsPostsLoading(true);
-   const posts = await PostService.getAll();
-   setPosts(posts);
-   setIsPostsLoading(false);
  }
 
  const removePost = (post) => {
@@ -63,6 +60,8 @@ function App() {
       
       <hr style={{margin: '15px'}}/>
       <PostFilter filter={filter} setFilter={setFilter} />
+      {postError &&
+        <h1>Error: {postError}</h1>}
       {isPostsLoading
         ? <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '50px'}}>
             <MyLoader />
